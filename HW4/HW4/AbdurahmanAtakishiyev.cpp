@@ -158,6 +158,28 @@ void vprint2(int x, int y, float size, char *string, ...) {
 //
 // To display onto window using OpenGL commands
 //
+void temp(float x, float y, float r) {
+#define PI 3.1415
+	float angle;
+	glBegin(GL_TRIANGLE_FAN);	glColor3ub(47, 79, 79);
+
+	glVertex2f(x, y);
+	for (int i = 0; i <= 100; i++)
+	{
+		
+
+		angle = 2 * PI*i / 100;
+		vertex_t P = { { 100 - x + r*cos(angle), 250  - y + r*sin(angle) },{ 0, 1 } };
+
+		color_t res = { 0, 0, 0 };
+		for (int i = 0; i < NUM; i++) {
+			res = addColor(res, calculateColor(light[i], P));
+		}
+		glColor3f(res.r, res.g, res.b);
+		glVertex2f(x + r*cos(angle), y + r*sin(angle));
+	}
+	glEnd();
+}
 void drawFilledCircle(float x, float y, float radius) {
 	int i;
 	int triangleAmount = 40; //# of triangles used to draw circle
@@ -171,7 +193,8 @@ void drawFilledCircle(float x, float y, float radius) {
 	glVertex2f(x, y); // center of circle
 
 	for (i = 0; i <= triangleAmount; i++) {
-		vertex_t P = { { x + (radius * cos(i *  twicePi / triangleAmount)), 100 },{ 0, 2 } };
+		vertex_t P = { { x + (radius * cos(i *  twicePi / triangleAmount)), y + (radius * sin(i * twicePi / triangleAmount)) },
+		{ 0, 300-y+(radius * sin(i * twicePi / triangleAmount)) } };
 
 		color_t res = { 0, 0, 0 };
 		for (int i = 0; i < NUM; i++) {
@@ -201,10 +224,14 @@ void display() {
 
 	// sun
 	glColor3f(light[3].color.r, light[3].color.g, light[3].color.b);
+
 	circle(light[3].pos.x, light[3].pos.y, 30);
 
 	
-	drawFilledCircle(100, 100, 20);
+	drawFilledCircle(0, 300, 20);
+	glColor3f(1, 0, 0);
+
+	temp(100, 250, 20);
 
 	for (int x = -400; x <= 400; x++) {
 		vertex_t P = { { x, -100 },{ 0, 1 } };
@@ -294,8 +321,10 @@ void onSpecialKeyUp(int key, int x, int y)
 void onClick(int button, int stat, int x, int y)
 {
 	// Write your codes here.
-
-
+	x = x - winWidth / 2;
+	y = winHeight / 2 - y;
+	if (button == GLUT_LEFT_BUTTON && stat == GLUT_DOWN)
+		printf("%d %d\n", x, y);
 
 	// to refresh the window it calls display() function
 	glutPostRedisplay();
