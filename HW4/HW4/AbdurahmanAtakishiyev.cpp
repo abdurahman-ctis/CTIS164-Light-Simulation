@@ -42,6 +42,7 @@ typedef struct {
 typedef struct {
 	vec_t center;
 	int angle, speed;
+	float radius;
 }planet_t;
 
 #define NUM 4
@@ -51,10 +52,11 @@ light_t light[4] =
 	{ { 0, 0 },{ 1, 0, 0 },{ 3,  2 } },
 	{ { 200, 0 },{ 0, 1, 0 },{ -2, -1 } },
 	{ { -200, 0 },{ 0, 0, 1 },{ 3, -2 } },
-	{ { 0 ,0 } ,{ 1,1,1 },{ 0,0 } }
+	{ { 0, 0 },{ 1, 1, 1 },{ 0, 0 } }
 };
 
 planet_t planet[3];
+bool timer = true;
 
 color_t mulColor(float k, color_t c) {
 	color_t tmp = { k * c.r, k * c.g, k * c.b };
@@ -77,7 +79,7 @@ double distanceImpact(double d) {
 color_t calculateColor(light_t source, vertex_t v) {
 	vec_t L = subV(source.pos, v.pos);
 	vec_t uL = unitV(L);
-	float factor = dotP(uL, v.N) * distanceImpact(magV(L)) * 5;
+	float factor = dotP(uL, v.N) * distanceImpact(magV(L));
 	return mulColor(factor, source.color);
 }
 
@@ -165,7 +167,7 @@ void vprint2(int x, int y, float size, char *string, ...) {
 //
 // To display onto window using OpenGL commands
 //
-void drawPlanet(planet_t p, float r, float radius) {
+void drawPlanet(planet_t p, float radius) {
 #define PI 3.1415
 	float angle;
 	float x = p.center.x, y = p.center.y;
@@ -180,19 +182,18 @@ void drawPlanet(planet_t p, float r, float radius) {
 	{
 		angle = 2 * PI*i / 100;
 
-		x = radius*cos(ang*D2R) + r*cos(angle);
-		y = radius*sin(ang*D2R) + r*sin(angle);
+		x = radius*cos(ang*D2R) + p.radius*cos(angle);
+		y = radius*sin(ang*D2R) + p.radius*sin(angle);
 
 		vertex_t P = { { x, y },{ radius*cos(ang*D2R), radius*sin(ang*D2R) } };
 		P.N = unitV(subV({ x, y }, { radius*cos(ang*D2R), radius*sin(ang*D2R) }));
-		//P.N = unitV(subV({ x + r*cos(angle), y + r*sin(angle) }, { x + r*cos(angle), y + r*sin(angle) }));
 
 		color_t res = { 0, 0, 0 };
 		for (int i = 0; i < NUM; i++) {
 			res = addColor(res, calculateColor(light[i], P));
 		}
 		glColor3f(res.r, res.g, res.b);
-		glVertex2f(x+radius*cos(ang*D2R), y+radius*cos(ang*D2R));
+		glVertex2f(x, y);
 	}
 	glEnd();
 }
@@ -212,13 +213,13 @@ void display() {
 
 	// sun
 	glColor3f(light[3].color.r, light[3].color.g, light[3].color.b);
-
-	circle(light[3].pos.x, light[3].pos.y, 30);
-
-	float radius = 100;
+	circle(light[3].pos.x, light[3].pos.y, 40);
+	
+	// planets
+	float radius = 200;
 	for (int i = 0; i < 3; i++) {
-		drawPlanet(planet[i], 10, radius);
-		radius += 100;
+		drawPlanet(planet[i], radius);
+		radius += 60;
 	}
 
 	glutSwapBuffers();
@@ -251,6 +252,7 @@ void onKeyUp(unsigned char key, int x, int y)
 // Special Key like GLUT_KEY_F1, F2, F3,...
 // Arrow Keys, GLUT_KEY_UP, GLUT_KEY_DOWN, GLUT_KEY_RIGHT, GLUT_KEY_RIGHT
 //
+void Init();
 void onSpecialKeyDown(int key, int x, int y)
 {
 	// Write your codes here.
@@ -259,6 +261,30 @@ void onSpecialKeyDown(int key, int x, int y)
 	case GLUT_KEY_DOWN: down = true; break;
 	case GLUT_KEY_LEFT: left = true; break;
 	case GLUT_KEY_RIGHT: right = true; break;
+	case GLUT_KEY_F1:
+		if (light[0].color.r == 0.18f)
+			light[0].color = { 1,0,0 };
+		else
+			light[0].color = { 0.18f,0.3f,0.3f }; break;
+	case GLUT_KEY_F2:
+		if (light[1].color.r == 0.18f)
+			light[1].color = { 0,1,0 };
+		else
+			light[1].color = { 0.18f,0.3f,0.3f }; break;
+	case GLUT_KEY_F3:
+		if (light[2].color.r == 0.18f)
+			light[2].color = { 0,0,1 };
+		else
+			light[2].color = { 0.18f,0.3f,0.3f }; break;
+	case GLUT_KEY_F4:
+		if (light[3].color.r == 0.18f)
+			light[3].color = { 1,1,1 };
+		else
+			light[3].color = { 0.18f,0.3f,0.3f }; break;
+	case GLUT_KEY_F5:
+		timer = !timer; break;
+	case GLUT_KEY_F6:
+		Init();
 	}
 	// to refresh the window it calls display() function
 	glutPostRedisplay();
@@ -291,10 +317,6 @@ void onSpecialKeyUp(int key, int x, int y)
 void onClick(int button, int stat, int x, int y)
 {
 	// Write your codes here.
-	x = x - winWidth / 2;
-	y = winHeight / 2 - y;
-	if (button == GLUT_LEFT_BUTTON && stat == GLUT_DOWN)
-		printf("%d %d\n", x, y);
 
 	// to refresh the window it calls display() function
 	glutPostRedisplay();
@@ -341,24 +363,25 @@ void onTimer(int v) {
 
 	glutTimerFunc(TIMER_PERIOD, onTimer, 0);
 	// Write your codes here.
-	for (int i = 0; i < 3; i++) {
-		planet[i].angle += planet[i].speed;//e[i].speed * e[i].direction;
-		if (planet[i].angle > 360)
-			planet[i].angle -= 360;
-	}
-	for (int i = 0; i < NUM; i++) {
-		light[i].pos = addV(light[i].pos, light[i].vel);
-
-		// Reflection from Walls.
-		if (light[i].pos.x > 340 || light[i].pos.x < -340) {
-			light[i].vel.x *= -1;
+	if (timer) {
+		for (int i = 0; i < 3; i++) {
+			planet[i].angle += planet[i].speed;
+			if (planet[i].angle > 360)
+				planet[i].angle -= 360;
 		}
+		for (int i = 0; i < NUM; i++) {
+			light[i].pos = addV(light[i].pos, light[i].vel);
 
-		if (light[i].pos.y > 340 || light[i].pos.y < -340) {
-			light[i].vel.y *= -1;
+			// Reflection from Walls.
+			if (light[i].pos.x > 340 || light[i].pos.x < -340) {
+				light[i].vel.x *= -1;
+			}
+
+			if (light[i].pos.y > 340 || light[i].pos.y < -340) {
+				light[i].vel.y *= -1;
+			}
 		}
 	}
-
 	// to refresh the window it calls display() function
 	glutPostRedisplay(); // display()
 
@@ -374,7 +397,8 @@ void Init() {
 	for (int i = 0; i < 3; i++) {
 		planet[i].center = { 0.0f,75.0f + 100 * i };
 		planet[i].angle = rand() % 360;
-		planet[i].speed = rand() % 4;
+		planet[i].speed = rand() % 2 + rand()%2 + 1;
+		planet[i].radius = rand() % 10 + 20;
 	}
 
 }
