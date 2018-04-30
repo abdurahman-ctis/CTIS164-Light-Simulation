@@ -9,11 +9,11 @@ Vectors: Light Simulation
 #include <math.h>
 #include <string.h>
 #include <stdarg.h>
+#include <time.h>
 #include "vec.h"
 
-
-#define WINDOW_WIDTH  800
-#define WINDOW_HEIGHT 800
+#define WINDOW_WIDTH  700
+#define WINDOW_HEIGHT 700
 
 #define TIMER_PERIOD  16 // Period for the timer.
 #define TIMER_ON       1 // 0:disable timer, 1:enable timer
@@ -39,6 +39,11 @@ typedef struct {
 	vec_t N;
 } vertex_t;
 
+typedef struct {
+	vec_t center;
+	int angle, speed;
+}planet_t;
+
 #define NUM 4
 
 light_t light[4] =
@@ -46,8 +51,10 @@ light_t light[4] =
 	{ { 0, 0 },{ 1, 0, 0 },{ 3,  2 } },
 	{ { 200, 0 },{ 0, 1, 0 },{ -2, -1 } },
 	{ { -200, 0 },{ 0, 0, 1 },{ 3, -2 } },
-	{ {0 ,0} ,{1,1,1},{0,0}}
+	{ { 0 ,0 } ,{ 1,1,1 },{ 0,0 } }
 };
+
+planet_t planet[3];
 
 color_t mulColor(float k, color_t c) {
 	color_t tmp = { k * c.r, k * c.g, k * c.b };
@@ -70,7 +77,7 @@ double distanceImpact(double d) {
 color_t calculateColor(light_t source, vertex_t v) {
 	vec_t L = subV(source.pos, v.pos);
 	vec_t uL = unitV(L);
-	float factor = dotP(uL, v.N) * distanceImpact(magV(L));
+	float factor = dotP(uL, v.N) * distanceImpact(magV(L)) * 5;
 	return mulColor(factor, source.color);
 }
 
@@ -109,7 +116,7 @@ void circle_wire(int x, int y, int r)
 void print(int x, int y, char *string, void *font)
 {
 	int len, i;
-	 
+
 	glRasterPos2f(x, y);
 	len = (int)strlen(string);
 	for (i = 0; i<len; i++)
@@ -158,53 +165,34 @@ void vprint2(int x, int y, float size, char *string, ...) {
 //
 // To display onto window using OpenGL commands
 //
-void temp(float x, float y, float r) {
+void drawPlanet(planet_t p, float r, float radius) {
 #define PI 3.1415
 	float angle;
-	glBegin(GL_TRIANGLE_FAN);	glColor3ub(47, 79, 79);
-
-	glVertex2f(x, y);
-	for (int i = 0; i <= 100; i++)
-	{
-		
-
-		angle = 2 * PI*i / 100;
-		vertex_t P = { { 100 - x + r*cos(angle), 250  - y + r*sin(angle) },{ 0, 1 } };
-
-		color_t res = { 0, 0, 0 };
-		for (int i = 0; i < NUM; i++) {
-			res = addColor(res, calculateColor(light[i], P));
-		}
-		glColor3f(res.r, res.g, res.b);
-		glVertex2f(x + r*cos(angle), y + r*sin(angle));
-	}
-	glEnd();
-}
-void drawFilledCircle(float x, float y, float radius) {
-	int i;
-	int triangleAmount = 40; //# of triangles used to draw circle
-
-							 //GLfloat radius = 0.8f; //radius
-	float twicePi = 2.0f * PI;
+	float x = p.center.x, y = p.center.y;
+	float ang = p.angle;
 
 	glBegin(GL_TRIANGLE_FAN);
 
 	glColor3ub(47, 79, 79);
-	glVertex2f(x, y); // center of circle
+	glVertex2f(radius*cos(ang*D2R), radius*sin(ang*D2R));
 
-	for (i = 0; i <= triangleAmount; i++) {
-		vertex_t P = { { x + (radius * cos(i *  twicePi / triangleAmount)), y + (radius * sin(i * twicePi / triangleAmount)) },
-		{ 0, 300-y+(radius * sin(i * twicePi / triangleAmount)) } };
+	for (int i = 0; i <= 100; i++)
+	{
+		angle = 2 * PI*i / 100;
+
+		x = radius*cos(ang*D2R) + r*cos(angle);
+		y = radius*sin(ang*D2R) + r*sin(angle);
+
+		vertex_t P = { { x, y },{ radius*cos(ang*D2R), radius*sin(ang*D2R) } };
+		P.N = unitV(subV({ x, y }, { radius*cos(ang*D2R), radius*sin(ang*D2R) }));
+		//P.N = unitV(subV({ x + r*cos(angle), y + r*sin(angle) }, { x + r*cos(angle), y + r*sin(angle) }));
 
 		color_t res = { 0, 0, 0 };
 		for (int i = 0; i < NUM; i++) {
 			res = addColor(res, calculateColor(light[i], P));
 		}
 		glColor3f(res.r, res.g, res.b);
-		glVertex2f(
-			x + (radius * cos(i *  twicePi / triangleAmount)),
-			y + (radius * sin(i * twicePi / triangleAmount))
-		);
+		glVertex2f(x+radius*cos(ang*D2R), y+radius*cos(ang*D2R));
 	}
 	glEnd();
 }
@@ -227,28 +215,10 @@ void display() {
 
 	circle(light[3].pos.x, light[3].pos.y, 30);
 
-	
-	drawFilledCircle(0, 300, 20);
-	glColor3f(1, 0, 0);
-
-	temp(100, 250, 20);
-
-	for (int x = -400; x <= 400; x++) {
-		vertex_t P = { { x, -100 },{ 0, 1 } };
-
-		color_t res = { 0, 0, 0 };
-		for (int i = 0; i < NUM; i++) {
-			res = addColor(res, calculateColor(light[i], P));
-		}
-
-
-		glBegin(GL_LINES);
-		glColor3f(res.r, res.g, res.b);
-		glVertex2f(x, -100);
-
-		glColor3f(0, 0, 0);
-		glVertex2f(x, -400);
-		glEnd();
+	float radius = 100;
+	for (int i = 0; i < 3; i++) {
+		drawPlanet(planet[i], 10, radius);
+		radius += 100;
 	}
 
 	glutSwapBuffers();
@@ -371,16 +341,20 @@ void onTimer(int v) {
 
 	glutTimerFunc(TIMER_PERIOD, onTimer, 0);
 	// Write your codes here.
-
+	for (int i = 0; i < 3; i++) {
+		planet[i].angle += planet[i].speed;//e[i].speed * e[i].direction;
+		if (planet[i].angle > 360)
+			planet[i].angle -= 360;
+	}
 	for (int i = 0; i < NUM; i++) {
 		light[i].pos = addV(light[i].pos, light[i].vel);
 
 		// Reflection from Walls.
-		if (light[i].pos.x > 390 || light[i].pos.x < -390) {
+		if (light[i].pos.x > 340 || light[i].pos.x < -340) {
 			light[i].vel.x *= -1;
 		}
 
-		if (light[i].pos.y > 390 || light[i].pos.y < -90) {
+		if (light[i].pos.y > 340 || light[i].pos.y < -340) {
 			light[i].vel.y *= -1;
 		}
 	}
@@ -396,6 +370,12 @@ void Init() {
 	// Smoothing shapes
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	srand(time(NULL));
+	for (int i = 0; i < 3; i++) {
+		planet[i].center = { 0.0f,75.0f + 100 * i };
+		planet[i].angle = rand() % 360;
+		planet[i].speed = rand() % 4;
+	}
 
 }
 
