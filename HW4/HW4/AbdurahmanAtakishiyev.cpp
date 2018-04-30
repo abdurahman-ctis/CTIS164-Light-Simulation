@@ -73,7 +73,7 @@ color_t addColor(color_t c1, color_t c2) {
 // when distance is 350 => impact is 0.0
 // Linear impact of distance on light calculation.
 double distanceImpact(double d) {
-	return (-1.0 / 350.0) * d + 1.0;
+	return fabs((-1.0 / 350.0) * d + 1.0);
 }
 
 color_t calculateColor(light_t source, vertex_t v) {
