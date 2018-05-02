@@ -12,8 +12,8 @@ Vectors: Light Simulation
 #include <time.h>
 #include "vec.h"
 
-#define WINDOW_WIDTH  700
-#define WINDOW_HEIGHT 700
+#define WINDOW_WIDTH  800
+#define WINDOW_HEIGHT 800
 
 #define TIMER_PERIOD  16 // Period for the timer.
 #define TIMER_ON       1 // 0:disable timer, 1:enable timer
@@ -70,10 +70,10 @@ color_t addColor(color_t c1, color_t c2) {
 
 // To add distance into calculation
 // when distance is 0  => its impact is 1.0
-// when distance is 350 => impact is 0.0
+// when distance is 400 => impact is 0.0
 // Linear impact of distance on light calculation.
 double distanceImpact(double d) {
-	return fabs((-1.0 / 350.0) * d + 1.0);
+	return fabs((-1.0 / 400.0) * d + 1.0);
 }
 
 color_t calculateColor(light_t source, vertex_t v) {
@@ -221,6 +221,15 @@ void display() {
 		drawPlanet(planet[i], radius);
 		radius += 60;
 	}
+
+	// keyboard hints
+	glColor3f(1, 1, 1);
+	vprint(-380, 380, GLUT_BITMAP_9_BY_15, "<F1>Red");
+	vprint(-300, 380, GLUT_BITMAP_9_BY_15, "<F2>Green");
+	vprint(-200, 380, GLUT_BITMAP_9_BY_15, "<F3>Blue");
+	vprint(-110, 380, GLUT_BITMAP_9_BY_15, "<F4>Sun");
+	vprint(-20, 380, GLUT_BITMAP_9_BY_15, "<F5>Pause");
+	vprint(80, 380, GLUT_BITMAP_9_BY_15, "<F6>Restart");
 
 	glutSwapBuffers();
 
@@ -373,11 +382,11 @@ void onTimer(int v) {
 			light[i].pos = addV(light[i].pos, light[i].vel);
 
 			// Reflection from Walls.
-			if (light[i].pos.x > 340 || light[i].pos.x < -340) {
+			if (light[i].pos.x > 380 || light[i].pos.x < -380) {
 				light[i].vel.x *= -1;
 			}
 
-			if (light[i].pos.y > 340 || light[i].pos.y < -340) {
+			if (light[i].pos.y > 380 || light[i].pos.y < -380) {
 				light[i].vel.y *= -1;
 			}
 		}
@@ -399,8 +408,8 @@ void Init() {
 		planet[i].angle = rand() % 360;
 		planet[i].speed = rand() % 2 + rand()%2 + 1;
 		planet[i].radius = rand() % 10 + 20;
+		light[i].pos = { rand() % 801 - 400.0f, rand() % 801 - 400.0f };
 	}
-
 }
 
 void main(int argc, char *argv[]) {
