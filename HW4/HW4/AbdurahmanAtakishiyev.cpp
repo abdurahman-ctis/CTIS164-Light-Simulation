@@ -1,6 +1,8 @@
 /*****
-CTIS164 - Lab12
-Vectors: Light Simulation
+CTIS164 - Homework #4
+Name:     Abdurahman Atakishiyev
+Section:  02
+ID:       21701324
 *****/
 
 #include <GL/glut.h>
@@ -83,6 +85,9 @@ color_t calculateColor(light_t source, vertex_t v) {
 	return mulColor(factor, source.color);
 }
 
+char* state(float r) {
+	return (r == 0.18f) ? "Off" : "On";
+}
 
 //
 // to draw circle, center at (x,y)
@@ -225,9 +230,17 @@ void display() {
 	// keyboard hints
 	glColor3f(1, 1, 1);
 	vprint(-380, 380, GLUT_BITMAP_9_BY_15, "<F1>Red");
+	vprint(-375, 365, GLUT_BITMAP_9_BY_15, "%s", state(light[0].color.r));
+
 	vprint(-300, 380, GLUT_BITMAP_9_BY_15, "<F2>Green");
+	vprint(-295, 365, GLUT_BITMAP_9_BY_15, "%s", state(light[1].color.r));
+
 	vprint(-200, 380, GLUT_BITMAP_9_BY_15, "<F3>Blue");
+	vprint(-195, 365, GLUT_BITMAP_9_BY_15, "%s", state(light[2].color.r));
+
 	vprint(-110, 380, GLUT_BITMAP_9_BY_15, "<F4>Sun");
+	vprint(-105, 365, GLUT_BITMAP_9_BY_15, "%s", state(light[3].color.r));
+
 	vprint(-20, 380, GLUT_BITMAP_9_BY_15, "<F5>Pause");
 	vprint(80, 380, GLUT_BITMAP_9_BY_15, "<F6>Restart");
 
@@ -417,7 +430,7 @@ void main(int argc, char *argv[]) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
 	glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-	glutCreateWindow("Light Simulation");
+	glutCreateWindow("Light Simulation by Abdurahman Atakishiyev");
 
 	glutDisplayFunc(display);
 	glutReshapeFunc(onResize);
