@@ -318,8 +318,10 @@ void onSpecialKeyDown(int key, int x, int y)
 		Init();
 		break;
 	case GLUT_KEY_F7:
-		light[size] = { { 0, 0 },{ (float)rand() / RAND_MAX, (float)rand() / RAND_MAX, (float)rand() / RAND_MAX },{ 3, -2 } };
-		size++;
+		if (size <= 24) {
+			light[size] = { { 0, 0 },{ (float)rand() / RAND_MAX, (float)rand() / RAND_MAX, (float)rand() / RAND_MAX },{ rand()%4*(rand() % 2 * 2 - 1.0f),rand() % 4 * (rand() % 2 * 2 - 1.0f) } };
+			size++;
+		}
 		break;
 	}
 	// to refresh the window it calls display() function
