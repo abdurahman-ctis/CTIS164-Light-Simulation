@@ -51,7 +51,7 @@ int size = 4;
 
 light_t light[24] =
 {
-	{ { 0, 0 },{ 1, 1, 0 },{ 0, 0 } },
+	{ { 0, 0 },{ 1,1,1 },{ 0, 0 } },
 	{ { 0, 0 },{ 1, 0, 0 },{ 3,  2 } },
 	{ { 200, 0 },{ 0, 1, 0 },{ -2, -1 } },
 	{ { -200, 0 },{ 0, 0, 1 },{ 3, -2 } }
@@ -240,7 +240,7 @@ void display() {
 	vprint(-200, 380, GLUT_BITMAP_9_BY_15, "<F3>Blue");
 	vprint(-195, 365, GLUT_BITMAP_9_BY_15, "%s", state(light[3].color.r));
 
-	glColor3f(1, 1, 0);
+	glColor3f(1,1,1);
 	vprint(-110, 380, GLUT_BITMAP_9_BY_15, "<F4>Sun");
 	vprint(-105, 365, GLUT_BITMAP_9_BY_15, "%s", state(light[0].color.r));
 
@@ -309,7 +309,7 @@ void onSpecialKeyDown(int key, int x, int y)
 			light[3].color = { 0.18f,0.3f,0.3f }; break;
 	case GLUT_KEY_F4:
 		if (light[0].color.r == 0.18f)
-			light[0].color = { 1,1,0 };
+			light[0].color = { 1,1,1 };
 		else
 			light[0].color = { 0.18f,0.3f,0.3f }; break;
 	case GLUT_KEY_F5:
